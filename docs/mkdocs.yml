@@ -1,0 +1,19 @@
+site_name: Interpretador de C - Documentação
+theme: 
+  name: material
+  language: pt-BR
+  features:
+      - navigation.tabs
+      - navigation.tabs.sticky
+nav:
+  - Home: index.md
+  - Sprints:
+    - Organização e fluxo de trabalho: sprints/organizacao.md
+    - Planejamento: sprints/planejamento.md
+    - Sprint 1:
+      - Cronograma da sprint: sprints/sprint1/cronograma.md
+    - Sprint 2:
+      - Cronograma da sprint: sprints/sprint2/cronograma.md
+  - O interpretador: 
+    - Como rodar o projeto: interpretador/comoRodar.md
+    - Glossário de termos: interpretador/glossarioTermos.md
