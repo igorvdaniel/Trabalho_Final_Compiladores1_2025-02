@@ -98,7 +98,7 @@ var_decl: NUM_VAR[type] VAR_NAME[name] ";" {
           }
         | CHAR_VAR[type] VAR_NAME[name] ";" {
             printf("[DEBUG] Declaração de variável: %s\n", $name);
-            add_var(CHAR, $name, NULL);
+            add_var(VAR_CHAR, $name, NULL);
         }
         | CHAR_VAR[type] VAR_NAME[name] "=" CHAR[value] ";" {
             printf("[DEBUG] Inicialização de variável: %s\n", $name);
