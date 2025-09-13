@@ -11,4 +11,5 @@ devenv.local.nix
 #Vscode
 .vscode
 
-build/
+build
+.cache

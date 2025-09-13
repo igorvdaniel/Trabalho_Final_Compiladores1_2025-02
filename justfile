@@ -1,11 +1,12 @@
-parser := "build/parser.tab.c"
-lexer := "build/lex.yy.c"
-lib := "interpretador/lib/var.c"
+src_path := "interpretador"
+build_path := "interpretador/build"
 
 build:
-    bison -d interpretador/parser/parser.y -o {{parser}}
-    flex -o {{lexer}} interpretador/lexer/lexer.l
-    gcc -o build/compilador {{parser}} {{lexer}} {{lib}} -lfl -I"interpretador/lib"
+    cmake -G Ninja -S {{ src_path }} -B {{ build_path }}
+    ninja -C {{ build_path }}
+
+clean:
+    rm -rf {{ build_path }}
 
 run:
-    ./build/compilador
+    ./{{ build_path }}/interpretador
