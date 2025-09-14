@@ -14,10 +14,18 @@ find_package(BISON REQUIRED)
 flex_target(LEXER "lexer/lexer.l" "${LEXER_OUT}" DEFINES_FILE "${BUILD_DIR}/lexer.h")
 bison_target(PARSER "parser/parser.y" "${PARSER_OUT}" DEFINES_FILE "${BUILD_DIR}/parser.tab.h")
 
+set(LIBRARY
+  var.c
+  rules_var.c
+  utils.c
+)
+
+list(TRANSFORM LIBRARY PREPEND lib/)
+
 add_executable(interpretador
   ${LEXER_OUT}
   ${PARSER_OUT}
-  lib/var.c
+  ${LIBRARY}
 )
 
 target_include_directories(interpretador PRIVATE

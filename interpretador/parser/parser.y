@@ -4,22 +4,22 @@
 #include <string.h>
 #include <stdbool.h>
 #include "var.h"
+#include "rules_var.h"
 int yylex(void);
 void yyerror(const char *s);
 %}
 
 /* Define valor semântico (intValue) */
 %union {
-    char charValue;
     char *strValue;
     double doubleValue;
-    int intValue;
 }
 
-%token <doubleValue> NUM
-%token <strValue> VAR_NAME NUM_VAR CHAR_VAR CHAR
-%token SEMI ";"
-%token EQUAL "="
+%token <doubleValue> NUM CHAR
+%token <strValue> VAR_NAME VAR_TYPE
+%token SEMI ";" EQUAL "="
+
+%type <doubleValue> value
 
 %start input
 
@@ -63,64 +63,19 @@ program:  VAR_NAME[name] ";" {
        | var_decl
        ;
 
-var_decl: NUM_VAR[type] VAR_NAME[name] ";" {
+var_decl: VAR_TYPE[type] VAR_NAME[name] ";" {
             printf("[DEBUG] Declaração de variável: %s\n", $name);
-
-            if (strcmp($type, "int") == 0) {
-              add_var(INT, $name, NULL);
-            }
-
-            else if (strcmp($type, "float") == 0) {
-              add_var(FLOAT, $name, NULL);
-            }
-
-            else if (strcmp($type, "double") == 0) {
-              add_var(DOUBLE, $name, NULL);
-            }
+            decl_var($type, $name);
 		      }
-        | NUM_VAR[type] VAR_NAME[name] "=" NUM[value] ";" {
+        | VAR_TYPE[type] VAR_NAME[name] "=" value ";" {
             printf("[DEBUG] Inicializacão de variável: %s\n", $2);
-
-            if (strcmp($type, "int") == 0) {
-              int i = (int)$value;
-              add_var(INT, $name, &i);
-            }
-
-            else if (strcmp($type, "float") == 0) {
-              float f = (float)$value;
-              add_var(FLOAT, $name, &f);
-            }
-
-            else if (strcmp($type, "double") == 0) {
-              double d = $value;
-              add_var(DOUBLE, $name, &d);
-            }
+            init_var($type, $name, $value);
           }
-        | CHAR_VAR[type] VAR_NAME[name] ";" {
-            printf("[DEBUG] Declaração de variável: %s\n", $name);
-            add_var(VAR_CHAR, $name, NULL);
-        }
-        | CHAR_VAR[type] VAR_NAME[name] "=" CHAR[value] ";" {
-            printf("[DEBUG] Inicialização de variável: %s\n", $name);
-
-            char c;
-
-            if (strlen($value) == 4) {
-              switch ($value[2]) {
-                case 'n':
-                  c = '\n';
-                  break;
-                case '0':
-                  c = '\0';
-                  break;
-              }
-            } else {
-              c = $value[1];
-            }
-
-            add_var(VAR_CHAR, $name, &c);
-        }
         ;
+
+value : CHAR { $$ = $1; }
+      | NUM  { $$ = $1; }
+      ;
 
 %%
 

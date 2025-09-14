@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.tab.h"
+#include "utils.h"
 %}
 
 %option always-interactive
@@ -17,14 +18,9 @@ AL  [_a-zA-Z]
 
 "=" { return EQUAL; }
 
-("int"|"float"|"double") {
+("int"|"float"|"double"|"char") {
     yylval.strValue = strdup(yytext);
-    return NUM_VAR;
-}
-
-"char" {
-    yylval.strValue = strdup(yytext);
-    return CHAR_VAR;
+    return VAR_TYPE;
 }
 
 {AL}{AN}* {
@@ -38,7 +34,7 @@ AL  [_a-zA-Z]
 }
 
 '(\\)?.' {
-    yylval.strValue = strdup(yytext);
+    yylval.doubleValue = convert_char(yytext);
     return CHAR;
 }
 
