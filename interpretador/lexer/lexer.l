@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "parser.tab.h"
 #include "utils.h"
+#include "meta.h"
 %}
 
 %option always-interactive
@@ -38,7 +39,9 @@ AL  [_a-zA-Z]
     return CHAR;
 }
 
-[ \t\n]+  { /* não faz nada */ }
+[ \t]+    { /* não faz nada */ }
+
+\n        { line++; }
 
 .         { printf("Caractere não reconhecido: %s\n", yytext); }
 

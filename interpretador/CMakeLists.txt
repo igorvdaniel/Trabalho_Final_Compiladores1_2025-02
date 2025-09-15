@@ -18,6 +18,7 @@ set(LIBRARY
   var.c
   rules_var.c
   utils.c
+  meta.c
 )
 
 list(TRANSFORM LIBRARY PREPEND lib/)

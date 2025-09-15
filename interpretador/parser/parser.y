@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "var.h"
 #include "rules_var.h"
+#include "meta.h"
 int yylex(void);
 void yyerror(const char *s);
 %}
@@ -58,20 +59,54 @@ program:  VAR_NAME[name] ";" {
                 printf("[DEBUG] Variavel inválida\n");
                 break;
               }
-           } 
+           } else {
+              fprintf(stderr, 
+                      "[ERRO] Uso de variável desconhecida %s na linha %d\n", 
+                      $name,
+                      line);
+              YYABORT;
+           }
          }
        | var_decl
+       | var_update
        ;
 
 var_decl: VAR_TYPE[type] VAR_NAME[name] ";" {
-            printf("[DEBUG] Declaração de variável: %s\n", $name);
-            decl_var($type, $name);
+            if (decl_var($type, $name)) {
+              printf("[DEBUG] Declaração de variável: %s\n", $name);
+            } else {
+              fprintf(stderr, 
+                      "[ERRO] Redeclaração da variável %s na linha %d\n", 
+                      $name,
+                      line);
+              YYABORT;
+            }
 		      }
         | VAR_TYPE[type] VAR_NAME[name] "=" value ";" {
-            printf("[DEBUG] Inicializacão de variável: %s\n", $2);
-            init_var($type, $name, $value);
+            if (init_var($type, $name, $value)) {
+              printf("[DEBUG] Inicializacão de variável: %s\n", $name);
+            } else {
+              fprintf(stderr, 
+                      "[ERRO] Redeclaração da variável %s na linha %d\n", 
+                      $name,
+                      line);
+              YYABORT;
+            }
           }
         ;
+
+var_update: VAR_NAME[name] "=" value ";" {
+              if (up_var($name, $value)) {
+                printf("[DEBUG] Atualizando valor da variável: %s\n", $name);
+              } else {
+                fprintf(stderr, 
+                        "[ERRO] Uso de variável desconhecida %s na linha %d\n", 
+                        $name,
+                        line);
+                YYABORT;
+              }
+            }
+          ;
 
 value : CHAR { $$ = $1; }
       | NUM  { $$ = $1; }
