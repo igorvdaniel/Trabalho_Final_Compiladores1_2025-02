@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-VarList *list;
+VarList *global_vars;
 
 const char *var_type_strings[] = {
     [INT] = "int",
@@ -12,17 +12,29 @@ const char *var_type_strings[] = {
 };
 
 void create_var_list() {
-  list = malloc(sizeof(VarList));
-  list->var = NULL;
-  list->next = NULL;
+  global_vars = malloc(sizeof(VarList));
+  global_vars->var = NULL;
+  global_vars->next = NULL;
 }
 
-void add_var(VarType type, char *name, void *value) {
+Var *get_var(char *name) {
+  VarList *l = global_vars;
+  while (l->next != NULL) {
+    if (strcmp(l->var->name, name) == 0)
+      return l->var;
+
+    l = l->next;
+  }
+
+  return NULL;
+}
+
+bool add_var(VarType type, char *name, void *value) {
   VarList *l;
 
-  for (l = list; l->var != NULL; l = l->next) {
+  for (l = global_vars; l->var != NULL; l = l->next) {
     if (strcmp(l->var->name, name) == 0)
-      return;
+      return false;
   }
 
   l->next = malloc(sizeof(VarList));
@@ -60,16 +72,31 @@ void add_var(VarType type, char *name, void *value) {
   }
 
   l->var = var;
+  return true;
 }
 
-Var *get_var(char *name) {
-  VarList *l = list;
-  while (l->next != NULL) {
-    if (strcmp(l->var->name, name) == 0)
-      return l->var;
+bool update_var(VarType type, Var *var, void *value) {
+  if (type <= VAR_CHAR) {
+    switch (var->type) {
+    case INT:
+      memcpy(var->value, value, sizeof(int));
+      break;
+    case FLOAT:
+      memcpy(var->value, value, sizeof(float));
+      break;
+    case DOUBLE:
+      memcpy(var->value, value, sizeof(double));
+      break;
+    case VAR_CHAR:
+      memcpy(var->value, value, sizeof(char));
+      break;
+    default:
+      return false;
+      break;
+    }
 
-    l = l->next;
+    return true;
   }
 
-  return NULL;
+  return false;
 }

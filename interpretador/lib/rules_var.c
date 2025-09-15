@@ -2,42 +2,75 @@
 #include "var.h"
 #include <string.h>
 
-void decl_var(char *type, char *name) {
+bool decl_var(char *type, char *name) {
   if (strcmp(type, "int") == 0) {
-    add_var(INT, name, NULL);
+    return add_var(INT, name, NULL);
   }
 
   else if (strcmp(type, "float") == 0) {
-    add_var(FLOAT, name, NULL);
+    return add_var(FLOAT, name, NULL);
   }
 
   else if (strcmp(type, "double") == 0) {
-    add_var(DOUBLE, name, NULL);
+    return add_var(DOUBLE, name, NULL);
   }
 
   else if (strcmp(type, "char") == 0) {
-    add_var(VAR_CHAR, name, NULL);
+    return add_var(VAR_CHAR, name, NULL);
   }
+
+  return false;
 }
 
-void init_var(char *type, char *name, double value) {
+bool init_var(char *type, char *name, double value) {
   if (strcmp(type, "int") == 0) {
-    int i = (int)value;
-    add_var(INT, name, &i);
+    int i = value;
+    return add_var(INT, name, &i);
   }
 
   else if (strcmp(type, "float") == 0) {
-    float f = (float)value;
-    add_var(FLOAT, name, &f);
+    float f = value;
+    return add_var(FLOAT, name, &f);
   }
 
   else if (strcmp(type, "double") == 0) {
     double d = value;
-    add_var(DOUBLE, name, &d);
+    return add_var(DOUBLE, name, &d);
   }
 
   else if (strcmp(type, "char") == 0) {
-    char c = (char)value;
-    add_var(VAR_CHAR, name, &c);
+    char c = value;
+    return add_var(VAR_CHAR, name, &c);
   }
+
+  return false;
+}
+
+bool up_var(char *name, double value) {
+  Var *var = get_var(name);
+  if (var != NULL) {
+    switch (var->type) {
+    case INT:
+      int i = value;
+      return update_var(INT, var, &i);
+      break;
+    case FLOAT:
+      float f = value;
+      return update_var(FLOAT, var, &f);
+      break;
+    case DOUBLE:
+      double d = value;
+      return update_var(DOUBLE, var, &d);
+      break;
+    case VAR_CHAR:
+      char c = value;
+      return update_var(VAR_CHAR, var, &c);
+      break;
+    default:
+      return false;
+      break;
+    }
+  }
+
+  return false;
 }
