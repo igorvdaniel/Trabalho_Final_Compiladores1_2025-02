@@ -41,6 +41,8 @@ AL  [_a-zA-Z]
 
 [ \t]+    { /* não faz nada */ }
 
+"//".* { /* Comentário */}
+
 \n        { line++; }
 
 .         { printf("Caractere não reconhecido: %s\n", yytext); }
