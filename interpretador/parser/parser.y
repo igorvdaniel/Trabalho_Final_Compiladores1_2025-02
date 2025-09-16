@@ -35,7 +35,7 @@ program:  VAR_NAME[name] ";" {
             if (var != NULL) {
               VarType type = var->type;
               void *value = var->value;
-              printf("[DEBUG] Variavel: %s\n", var->name);
+              printf("[DEBUG] Variável: %s\n", var->name);
               printf("[DEBUG] Tipo: %s\n", var_type_strings[type]);
 
               switch (type) {
@@ -56,7 +56,7 @@ program:  VAR_NAME[name] ";" {
                 printf("[DEBUG] Valor: '%c'\n", *char_value);
                 break;
               default:
-                printf("[DEBUG] Variavel inválida\n");
+                printf("[DEBUG] Variável inválida\n");
                 break;
               }
            } else {
@@ -120,5 +120,5 @@ int main(void) {
 }
 
 void yyerror(const char *s) {
-  fprintf(stderr, "Erro sintático: %s\n", s);
+  fprintf(stderr, "[ERRO] Sintaxe inválida na linha %d\n", line);
 }
