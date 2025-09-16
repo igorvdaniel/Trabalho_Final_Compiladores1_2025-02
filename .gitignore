@@ -13,3 +13,4 @@ devenv.local.nix
 
 build
 .cache
+__pycache__

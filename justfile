@@ -5,6 +5,9 @@ build:
     cmake -G Ninja -S {{ src_path }} -B {{ build_path }}
     ninja -C {{ build_path }}
 
+test cases="test": build
+    pytest -k {{ cases }} interpretador/test 
+
 clean:
     rm -rf {{ build_path }}
 
