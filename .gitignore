@@ -13,4 +13,5 @@ devenv.local.nix
 
 build
 .cache
+.clangd
 __pycache__

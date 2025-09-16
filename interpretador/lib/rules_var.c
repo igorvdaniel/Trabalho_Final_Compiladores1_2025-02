@@ -1,4 +1,5 @@
 #include "rules_var.h"
+#include "scope.h"
 #include "var.h"
 #include <string.h>
 
@@ -47,7 +48,17 @@ bool init_var(char *type, char *name, double value) {
 }
 
 bool up_var(char *name, double value) {
-  Var *var = get_var(name);
+  VarList *l = current_scope->var_list;
+  Var *var = NULL;
+
+  while (l->var != NULL) {
+    if (strcmp(l->var->name, name) == 0) {
+      var = l->var;
+      break;
+    }
+    l = l->next;
+  }
+
   if (var != NULL) {
     switch (var->type) {
     case INT:

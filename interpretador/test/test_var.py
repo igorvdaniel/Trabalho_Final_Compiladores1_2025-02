@@ -1,6 +1,3 @@
-import subprocess
-import pytest
-from glob import glob
 from common import *
 
 test_files = glob(f"{tests_path}/var/*.c")

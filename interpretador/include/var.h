@@ -8,10 +8,9 @@ typedef enum {
   FLOAT,
   DOUBLE,
   VAR_CHAR,
-  VAR_ENUM_LENGTH, // Usado apenas para obter o comprimento do enum
 } VarType;
 
-extern const char *var_type_strings[VAR_ENUM_LENGTH];
+extern const char *var_type_strings[];
 
 typedef struct {
   char *name;
@@ -24,7 +23,8 @@ typedef struct VarList {
   struct VarList *next;
 } VarList;
 
-extern void create_var_list();
+extern VarList *create_var_list();
+extern void purge_var_list(VarList *v);
 extern bool add_var(VarType type, char *name, void *value);
 extern bool update_var(VarType type, Var *var, void *value);
 extern Var *get_var(char *name);

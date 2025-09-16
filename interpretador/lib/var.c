@@ -1,4 +1,5 @@
 #include "var.h"
+#include "scope.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -11,35 +12,57 @@ const char *var_type_strings[] = {
     [VAR_CHAR] = "char",
 };
 
-void create_var_list() {
-  global_vars = malloc(sizeof(VarList));
-  global_vars->var = NULL;
-  global_vars->next = NULL;
+VarList *create_var_list() {
+  VarList *vl = malloc(sizeof(VarList));
+  vl->var = NULL;
+  vl->next = NULL;
+
+  return vl;
+}
+
+void purge_var_list(VarList *v) {
+  while (v != NULL) {
+    VarList *current = v;
+    v = v->next;
+
+    free(current->var);
+    free(current);
+  }
 }
 
 Var *get_var(char *name) {
-  VarList *l = global_vars;
-  while (l->next != NULL) {
-    if (strcmp(l->var->name, name) == 0)
-      return l->var;
+  Scope *scope = current_scope;
 
-    l = l->next;
+  while (scope != NULL) {
+    VarList *l = scope->var_list;
+
+    while (l->var != NULL) {
+      if (strcmp(l->var->name, name) == 0)
+        return l->var;
+      l = l->next;
+    }
+
+    scope = scope->bottom;
   }
 
   return NULL;
 }
 
 bool add_var(VarType type, char *name, void *value) {
-  VarList *l;
+  VarList *l = current_scope->var_list;
 
-  for (l = global_vars; l->var != NULL; l = l->next) {
+  while (l->var != NULL) {
     if (strcmp(l->var->name, name) == 0)
       return false;
+    l = l->next;
   }
 
+  l->var = malloc(sizeof(Var));
   l->next = malloc(sizeof(VarList));
+  l->next->var = NULL;
+  l->next->next = NULL;
 
-  Var *var = malloc(sizeof(Var));
+  Var *var = l->var;
 
   var->name = malloc(strlen(name) + 1);
   strcpy(var->name, name);
@@ -71,7 +94,6 @@ bool add_var(VarType type, char *name, void *value) {
     break;
   }
 
-  l->var = var;
   return true;
 }
 
