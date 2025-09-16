@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "var.h"
 #include "rules_var.h"
+#include "scope.h"
 #include "meta.h"
 int yylex(void);
 void yyerror(const char *s);
@@ -115,8 +116,10 @@ value : CHAR { $$ = $1; }
 %%
 
 int main(void) {
-  create_var_list();
-  return yyparse();
+  stack_scope();
+  int r = yyparse();
+  pop_scope();
+  return r;
 }
 
 void yyerror(const char *s) {
