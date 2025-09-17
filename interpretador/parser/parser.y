@@ -101,30 +101,60 @@ var_update: VAR_NAME[name] "=" expr ";" {
           ;
 
 expr:
-      NUM                     { $$ = $1; }
-    | CHAR                    { $$ = $1; }
-    | expr PLUS expr          { $$ = $1 + $3; }
-    | expr MINUS expr         { $$ = $1 - $3; }
-    | expr TIMES expr         { $$ = $1 * $3; }
-    | expr DIVIDE expr        { 
-                                  if ($3 == 0) { 
-                                      printf("Erro: divisão por zero\n"); 
-                                      $$ = 0; 
-                                  } else { 
-                                      $$ = $1 / $3; 
-                                  }
-                               }
-     | expr MOD expr           {
-                                if ($3 == 0 || (long)$1 != $1 || (long) $3 != $3) {
-                                  fprintf(stderr, 
-                                    "[ERRO] Operação de módulo com 0 na linha %d\n",
-                                    line);
-                                  exit(0);
-
-                                } else {
-                                  $$ = (long)$1 % (long)$3;
-                                }
-                               }
+      NUM            { $$ = $1; }
+    | CHAR           { $$ = $1; }
+    | VAR_NAME[name] {
+      Var *var = get_var($name);
+      if (var != NULL) {
+        VarType type = var->type;
+        void *value = var->value;
+        switch(type) {
+        case INT:
+          int *int_value = value;
+          $$ = *int_value;
+          break;
+        case FLOAT:
+          float *float_value = value;
+          $$ = *float_value;
+          break;
+        case DOUBLE:
+          double *double_value = value;
+          $$ = *double_value;
+          break;
+        case VAR_CHAR:
+          char *char_value = value;
+          $$ = *char_value;
+          break;
+        }
+      } else {
+        fprintf(stderr, 
+          "[ERRO] Uso de variável desconhecida %s na linha %d\n",
+          $name,
+          line);
+        exit(1);
+      }
+    }
+    | expr PLUS expr  { $$ = $1 + $3; }
+    | expr MINUS expr { $$ = $1 - $3; }
+    | expr TIMES expr { $$ = $1 * $3; }
+    | expr DIVIDE expr { 
+      if ($3 == 0) { 
+        printf("Erro: divisão por zero\n"); 
+        $$ = 0; 
+      } else { 
+        $$ = $1 / $3; 
+      }
+    }
+    | expr MOD expr {
+      if ($3 == 0 || (long)$1 != $1 || (long) $3 != $3) {
+        fprintf(stderr, 
+          "[ERRO] Operação de módulo com 0 na linha %d\n",
+          line);
+        exit(1);
+      } else {
+        $$ = (long)$1 % (long)$3;
+      }
+    }
     | LPAREN expr RPAREN      { $$ = $2; }
     | MINUS expr %prec UMINUS { $$ = -$2; }
     | INCR expr               { $$ = $2 + 1; }   /* ++x */
