@@ -15,8 +15,10 @@ flex_target(LEXER "lexer/lexer.l" "${LEXER_OUT}" DEFINES_FILE "${BUILD_DIR}/lexe
 bison_target(PARSER "parser/parser.y" "${PARSER_OUT}" DEFINES_FILE "${BUILD_DIR}/parser.tab.h")
 
 set(LIBRARY
+  ast.c
+  ast_nodes.c
+  ast_rules.c
   var.c
-  rules_var.c
   utils.c
   meta.c
   scope.c

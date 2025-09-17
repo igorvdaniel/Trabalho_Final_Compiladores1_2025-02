@@ -1,9 +1,8 @@
 #include "var.h"
 #include "scope.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-VarList *global_vars;
 
 const char *var_type_strings[] = {
     [INT] = "int",
@@ -25,7 +24,12 @@ void purge_var_list(VarList *v) {
     VarList *current = v;
     v = v->next;
 
-    free(current->var);
+    if (current->var) {
+      free(current->var->name);
+      free(current->var->value);
+      free(current->var);
+    }
+
     free(current);
   }
 }
