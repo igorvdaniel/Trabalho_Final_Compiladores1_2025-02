@@ -1,9 +1,14 @@
-#include "rules_var.h"
+#include "ast_rules.h"
+#include "ast_nodes.h"
 #include "scope.h"
 #include "var.h"
+#include <stdio.h>
 #include <string.h>
 
-bool decl_var(char *type, char *name) {
+bool exec_var_decl(VarNode *node) {
+  char *type = node->type;
+  char *name = node->name;
+
   if (strcmp(type, "int") == 0) {
     return add_var(INT, name, NULL);
   }
@@ -23,7 +28,11 @@ bool decl_var(char *type, char *name) {
   return false;
 }
 
-bool init_var(char *type, char *name, double value) {
+bool exec_var_init(VarNode *node) {
+  char *type = node->type;
+  char *name = node->name;
+  double value = *node->value;
+
   if (strcmp(type, "int") == 0) {
     int i = value;
     return add_var(INT, name, &i);
@@ -47,7 +56,10 @@ bool init_var(char *type, char *name, double value) {
   return false;
 }
 
-bool up_var(char *name, double value) {
+bool exec_var_update(VarNode *node) {
+  char *name = node->name;
+  double value = *node->value;
+
   VarList *l = current_scope->var_list;
   Var *var = NULL;
 
@@ -59,28 +71,29 @@ bool up_var(char *name, double value) {
     l = l->next;
   }
 
-  if (var != NULL) {
-    switch (var->type) {
-    case INT:
-      int i = value;
-      return update_var(INT, var, &i);
-      break;
-    case FLOAT:
-      float f = value;
-      return update_var(FLOAT, var, &f);
-      break;
-    case DOUBLE:
-      double d = value;
-      return update_var(DOUBLE, var, &d);
-      break;
-    case VAR_CHAR:
-      char c = value;
-      return update_var(VAR_CHAR, var, &c);
-      break;
-    default:
-      return false;
-      break;
-    }
+  if (var == NULL)
+    return false;
+
+  switch (var->type) {
+  case INT:
+    int i = value;
+    return update_var(INT, var, &i);
+    break;
+  case FLOAT:
+    float f = value;
+    return update_var(FLOAT, var, &f);
+    break;
+  case DOUBLE:
+    double d = value;
+    return update_var(DOUBLE, var, &d);
+    break;
+  case VAR_CHAR:
+    char c = value;
+    return update_var(VAR_CHAR, var, &c);
+    break;
+  default:
+    return false;
+    break;
   }
 
   return false;

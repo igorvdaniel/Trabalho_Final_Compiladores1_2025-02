@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include "ast.h"
+#include "ast_nodes.h"
 #include "var.h"
-#include "rules_var.h"
 #include "scope.h"
 #include "meta.h"
 int yylex(void);
@@ -15,6 +16,7 @@ void yyerror(const char *s);
 %union {
     char *strValue;
     double doubleValue;
+    ASTNode *node;
 }
 
 %token <doubleValue> NUM CHAR
@@ -22,6 +24,7 @@ void yyerror(const char *s);
 %token SEMI ";" EQUAL "="
 
 %type <doubleValue> value
+%type <node> var_decl var_update
 
 %start input
 
@@ -68,44 +71,20 @@ program:  VAR_NAME[name] ";" {
               YYABORT;
            }
          }
-       | var_decl
-       | var_update
+       | var_decl { exec_node($1); }
+       | var_update { exec_node($1); }
        ;
 
 var_decl: VAR_TYPE[type] VAR_NAME[name] ";" {
-            if (decl_var($type, $name)) {
-              printf("[DEBUG] Declaração de variável: %s\n", $name);
-            } else {
-              fprintf(stderr, 
-                      "[ERRO] Redeclaração da variável %s na linha %d\n", 
-                      $name,
-                      line);
-              YYABORT;
-            }
+            $$ = create_var_node(VAR_DECL, $type, $name, NULL);
 		      }
         | VAR_TYPE[type] VAR_NAME[name] "=" value ";" {
-            if (init_var($type, $name, $value)) {
-              printf("[DEBUG] Inicializacão de variável: %s\n", $name);
-            } else {
-              fprintf(stderr, 
-                      "[ERRO] Redeclaração da variável %s na linha %d\n", 
-                      $name,
-                      line);
-              YYABORT;
-            }
+            $$ = create_var_node(VAR_INIT, $type, $name, &$value);
           }
         ;
 
 var_update: VAR_NAME[name] "=" value ";" {
-              if (up_var($name, $value)) {
-                printf("[DEBUG] Atualizando valor da variável: %s\n", $name);
-              } else {
-                fprintf(stderr, 
-                        "[ERRO] Uso de variável desconhecida %s na linha %d\n", 
-                        $name,
-                        line);
-                YYABORT;
-              }
+              $$ = create_var_node(VAR_UPDATE, NULL, $name, &$value);
             }
           ;
 
