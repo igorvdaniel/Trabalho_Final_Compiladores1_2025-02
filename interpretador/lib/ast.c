@@ -42,3 +42,14 @@ void exec_node(ASTNode *node) {
     break;
   }
 }
+
+void free_node(ASTNode *node) {
+  switch (node->type) {
+  case VAR_DECL:
+    break;
+  case VAR_INIT:
+    break;
+  case VAR_UPDATE:
+    break;
+  }
+}

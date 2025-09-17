@@ -19,12 +19,24 @@ void yyerror(const char *s);
     ASTNode *node;
 }
 
+
 %token <doubleValue> NUM CHAR
 %token <strValue> VAR_NAME VAR_TYPE
 %token SEMI ";" EQUAL "="
 
-%type <doubleValue> value
+%type <doubleValue> expr
 %type <node> var_decl var_update
+
+/* Operações */
+%token PLUS MINUS TIMES DIVIDE LPAREN RPAREN
+%token MOD /* token para calcular o resto*/
+%token INCR DECR /* Operadores unarios*/
+
+/* Precedência e associatividade */
+%left PLUS MINUS
+%left TIMES DIVIDE MOD
+%right UMINUS   /* ex: -5 */
+%right INCR DECR   /* ++ e -- associativos a direita */
 
 %start input
 
@@ -78,19 +90,54 @@ program:  VAR_NAME[name] ";" {
 var_decl: VAR_TYPE[type] VAR_NAME[name] ";" {
             $$ = create_var_node(VAR_DECL, $type, $name, NULL);
 		      }
-        | VAR_TYPE[type] VAR_NAME[name] "=" value ";" {
-            $$ = create_var_node(VAR_INIT, $type, $name, &$value);
+        | VAR_TYPE[type] VAR_NAME[name] "=" expr ";" {
+            $$ = create_var_node(VAR_INIT, $type, $name, &$expr);
           }
         ;
 
-var_update: VAR_NAME[name] "=" value ";" {
-              $$ = create_var_node(VAR_UPDATE, NULL, $name, &$value);
+var_update: VAR_NAME[name] "=" expr ";" {
+              $$ = create_var_node(VAR_UPDATE, NULL, $name, &$expr);
             }
           ;
 
+expr:
+      NUM                     { $$ = $1; }
+    | CHAR                    { $$ = $1; }
+    | expr PLUS expr          { $$ = $1 + $3; }
+    | expr MINUS expr         { $$ = $1 - $3; }
+    | expr TIMES expr         { $$ = $1 * $3; }
+    | expr DIVIDE expr        { 
+                                  if ($3 == 0) { 
+                                      printf("Erro: divisão por zero\n"); 
+                                      $$ = 0; 
+                                  } else { 
+                                      $$ = $1 / $3; 
+                                  }
+                               }
+     | expr MOD expr           {
+                                if ($3 == 0 || (long)$1 != $1 || (long) $3 != $3) {
+                                  fprintf(stderr, 
+                                    "[ERRO] Operação de módulo com 0 na linha %d\n",
+                                    line);
+                                  exit(0);
+
+                                } else {
+                                  $$ = (long)$1 % (long)$3;
+                                }
+                               }
+    | LPAREN expr RPAREN      { $$ = $2; }
+    | MINUS expr %prec UMINUS { $$ = -$2; }
+    | INCR expr               { $$ = $2 + 1; }   /* ++x */
+    | DECR expr               { $$ = $2 - 1; }   /* --x */
+    | expr INCR               { $$ = $1 + 1; }   /* x++ */
+    | expr DECR               { $$ = $1 - 1; }   /* x-- */
+    ;
+
+/*
 value : CHAR { $$ = $1; }
       | NUM  { $$ = $1; }
       ;
+*/
 
 %%
 

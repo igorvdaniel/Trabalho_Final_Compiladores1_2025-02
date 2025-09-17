@@ -20,5 +20,6 @@ typedef struct list {
 } ASTList;
 
 void exec_node(ASTNode *node);
+void free_node(ASTNode *node);
 
 #endif

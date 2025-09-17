@@ -20,6 +20,16 @@ AL  [_a-zA-Z]
 
 "=" { return EQUAL; }
 
+"+"             { return PLUS; }
+"-"             { return MINUS; }
+"*"             { return TIMES; }
+"/"             { return DIVIDE; }
+"("             { return LPAREN; }
+")"             { return RPAREN; }
+"++"            { return INCR; }
+"--"            { return DECR; }
+"%"             { return MOD; }
+
 ("int"|"float"|"double"|"char") {
     yylval.strValue = strdup(yytext);
     return VAR_TYPE;
