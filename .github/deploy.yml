@@ -25,7 +25,7 @@ jobs:
       - name: Install MkDocs and theme
         run: |
           pip install mkdocs
-          pip install mkdocs-material  # se você estiver usando o tema Material
+          pip install mkdocs-material  # se estiver usando o tema Material
 
       - name: Build site
         run: mkdocs build --strict --config-file docs/mkdocs.yml
@@ -33,7 +33,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/site
+          path: docs/site   # <- site gerado dentro de docs/
 
   deploy:
     environment:
