@@ -26,6 +26,8 @@ AL  [_a-zA-Z]
 "/"             { return DIVIDE; }
 "("             { return LPAREN; }
 ")"             { return RPAREN; }
+"{"             { return LBRACK; }
+"}"             { return RBRACK; }
 "++"            { return INCR; }
 "--"            { return DECR; }
 "%"             { return MOD; }

@@ -7,6 +7,7 @@
 #include "ast_nodes.h"
 #include "var.h"
 #include "scope.h"
+#include "utils.h"
 #include "meta.h"
 int yylex(void);
 void yyerror(const char *s);
@@ -19,18 +20,23 @@ void yyerror(const char *s);
     ASTNode *node;
 }
 
-
 %token <doubleValue> NUM CHAR
 %token <strValue> VAR_NAME VAR_TYPE
 %token SEMI ";" EQUAL "="
 
-%type <doubleValue> expr
+%type <node> decl stmt
 %type <node> var_decl var_update
+%type <node> scope
+%type <node> expr
 
 /* Operações */
-%token PLUS MINUS TIMES DIVIDE LPAREN RPAREN
-%token MOD /* token para calcular o resto*/
-%token INCR DECR /* Operadores unarios*/
+%token PLUS "+" MINUS "-" TIMES "*" DIVIDE "/" MOD "%"
+
+/* Operadores unarios*/
+%token INCR DECR 
+
+%token LPAREN "(" RPAREN ")"
+%token LBRACK "{" RBRACK "}"
 
 /* Precedência e associatividade */
 %left PLUS MINUS
@@ -38,136 +44,75 @@ void yyerror(const char *s);
 %right UMINUS   /* ex: -5 */
 %right INCR DECR   /* ++ e -- associativos a direita */
 
-%start input
+%start program
 
 %%
 
-input: 
-     | input program
+program: 
+       | program stmt     { exec_node($2); free_node($2); }
+       | program decl     { exec_node($2); free_node($2); }
+       | program scope    { exec_node($2); free_node($2); }
+       ;
+
+scope: "{"         { $<node>list = current_list; 
+                     current_list = create_node_list(); }[list]
+       /* { stack_scope(); } */
+       inner_scope
+       "}"         { $$ = current_list; current_list = $<node>list; }
+       /* { pop_scope();   } */
      ;
 
-program:  VAR_NAME[name] ";" {
-            Var *var = get_var($name);
-            if (var != NULL) {
-              VarType type = var->type;
-              void *value = var->value;
-              printf("[DEBUG] Variável: %s\n", var->name);
-              printf("[DEBUG] Tipo: %s\n", var_type_strings[type]);
 
-              switch (type) {
-              case INT:
-                int *int_value = value;
-                printf("[DEBUG] Valor: %d\n", *int_value);
-                break;
-              case FLOAT:
-                float *float_value = value;
-                printf("[DEBUG] Valor: %f\n", *float_value);
-                break;
-              case DOUBLE:
-                double *double_value = value;
-                printf("[DEBUG] Valor: %lf\n", *double_value);
-                break;
-              case VAR_CHAR:
-                char *char_value = value;
-                printf("[DEBUG] Valor: '%c'\n", *char_value);
-                break;
-              default:
-                printf("[DEBUG] Variável inválida\n");
-                break;
-              }
-           } else {
-              fprintf(stderr, 
-                      "[ERRO] Uso de variável desconhecida %s na linha %d\n", 
-                      $name,
-                      line);
-              YYABORT;
-           }
-         }
-       | var_decl { exec_node($1); }
-       | var_update { exec_node($1); }
-       ;
+
+inner_scope:
+           | inner_scope stmt { add_list_node($2); }
+           | inner_scope decl { add_list_node($2); }
+           | inner_scope 
+             "{"         { $<node>list = current_list; 
+                           current_list = create_node_list(); }[list]
+             inner_scope 
+             "}"         { ASTNode *l = current_list;
+                           current_list = $<node>list;
+                           add_list_node(l); }
+
+stmt: VAR_NAME[name] ";" {
+        $$ = create_var_node(VAR_PRINT, NULL, $name, NULL);
+      }
+    ;
+
+decl: var_decl   { $$ = $1; }
+    | var_update { $$ = $1; }
+    ;
 
 var_decl: VAR_TYPE[type] VAR_NAME[name] ";" {
             $$ = create_var_node(VAR_DECL, $type, $name, NULL);
 		      }
         | VAR_TYPE[type] VAR_NAME[name] "=" expr ";" {
-            $$ = create_var_node(VAR_INIT, $type, $name, &$expr);
+            $$ = create_var_node(VAR_INIT, $type, $name, $expr);
           }
         ;
 
 var_update: VAR_NAME[name] "=" expr ";" {
-              $$ = create_var_node(VAR_UPDATE, NULL, $name, &$expr);
+              $$ = create_var_node(VAR_UPDATE, NULL, $name, $expr);
             }
           ;
 
 expr:
-      NUM            { $$ = $1; }
-    | CHAR           { $$ = $1; }
-    | VAR_NAME[name] {
-      Var *var = get_var($name);
-      if (var != NULL) {
-        VarType type = var->type;
-        void *value = var->value;
-        switch(type) {
-        case INT:
-          int *int_value = value;
-          $$ = *int_value;
-          break;
-        case FLOAT:
-          float *float_value = value;
-          $$ = *float_value;
-          break;
-        case DOUBLE:
-          double *double_value = value;
-          $$ = *double_value;
-          break;
-        case VAR_CHAR:
-          char *char_value = value;
-          $$ = *char_value;
-          break;
-        }
-      } else {
-        fprintf(stderr, 
-          "[ERRO] Uso de variável desconhecida %s na linha %d\n",
-          $name,
-          line);
-        exit(1);
-      }
-    }
-    | expr PLUS expr  { $$ = $1 + $3; }
-    | expr MINUS expr { $$ = $1 - $3; }
-    | expr TIMES expr { $$ = $1 * $3; }
-    | expr DIVIDE expr { 
-      if ($3 == 0) { 
-        printf("Erro: divisão por zero\n"); 
-        $$ = 0; 
-      } else { 
-        $$ = $1 / $3; 
-      }
-    }
-    | expr MOD expr {
-      if ($3 == 0 || (long)$1 != $1 || (long) $3 != $3) {
-        fprintf(stderr, 
-          "[ERRO] Operação de módulo com 0 na linha %d\n",
-          line);
-        exit(1);
-      } else {
-        $$ = (long)$1 % (long)$3;
-      }
-    }
-    | LPAREN expr RPAREN      { $$ = $2; }
-    | MINUS expr %prec UMINUS { $$ = -$2; }
-    | INCR expr               { $$ = $2 + 1; }   /* ++x */
-    | DECR expr               { $$ = $2 - 1; }   /* --x */
-    | expr INCR               { $$ = $1 + 1; }   /* x++ */
-    | expr DECR               { $$ = $1 - 1; }   /* x-- */
+      NUM            { $$ = create_expr_node(EXPR_NUM, &$1, NULL, NULL); }
+    | CHAR           { $$ = create_expr_node(EXPR_CHAR, &$1, NULL, NULL); }
+    | VAR_NAME[name] { $$ = create_expr_node(EXPR_VAR, $1, NULL, NULL); }
+    | expr "+" expr  { $$ = create_expr_node(EXPR_PLUS, NULL, $1, $3); }
+    | expr "-" expr  { $$ = create_expr_node(EXPR_MINUS, NULL, $1, $3); }
+    | expr "*" expr  { $$ = create_expr_node(EXPR_TIMES, NULL, $1, $3); }
+    | expr "/" expr  { $$ = create_expr_node(EXPR_DIV, NULL, $1, $3); }
+    | expr "%" expr  { $$ = create_expr_node(EXPR_MOD, NULL, $1, $3); }
+    | "(" expr ")"   { $$ = create_expr_node(EXPR_PAR, NULL, $2, NULL); }
+    | MINUS expr     { $$ = create_expr_node(EXPR_NEG, NULL, $2, NULL); }
+    | INCR VAR_NAME  { $$ = create_expr_node(EXPR_INC_PREV, $2, NULL, NULL); }   /* ++x */
+    | DECR VAR_NAME  { $$ = create_expr_node(EXPR_DEC_PREV, $2, NULL, NULL); }   /* --x */
+    | VAR_NAME INCR  { $$ = create_expr_node(EXPR_INC_POST, $1, NULL, NULL); }   /* x++ */
+    | VAR_NAME DECR  { $$ = create_expr_node(EXPR_DEC_POST, $1, NULL, NULL); }   /* x-- */
     ;
-
-/*
-value : CHAR { $$ = $1; }
-      | NUM  { $$ = $1; }
-      ;
-*/
 
 %%
 

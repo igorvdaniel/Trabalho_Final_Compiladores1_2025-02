@@ -5,8 +5,12 @@
 #include "ast_nodes.h"
 #include <stdbool.h>
 
-bool exec_var_decl(VarNode *node);
-bool exec_var_init(VarNode *node);
-bool exec_var_update(VarNode *node);
+extern bool exec_var_decl(VarNode *node);
+extern bool exec_var_init(VarNode *node);
+extern bool exec_var_update(VarNode *node);
+
+extern double exec_expr_node(NodeType type, ExprNode *node);
+
+extern double exec_node_list(ListNode *node);
 
 #endif

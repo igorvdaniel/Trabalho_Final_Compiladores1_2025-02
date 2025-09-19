@@ -27,6 +27,6 @@ void pop_scope() {
   Scope *top = current_scope;
   current_scope = top->bottom;
 
-  purge_var_list(top->var_list);
+  free_var_list(top->var_list);
   free(top);
 }

@@ -24,7 +24,7 @@ typedef struct VarList {
 } VarList;
 
 extern VarList *create_var_list();
-extern void purge_var_list(VarList *v);
+extern void free_var_list(VarList *v);
 extern bool add_var(VarType type, char *name, void *value);
 extern bool update_var(VarType type, Var *var, void *value);
 extern Var *get_var(char *name);

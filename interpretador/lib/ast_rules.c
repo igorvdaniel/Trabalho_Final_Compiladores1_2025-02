@@ -1,8 +1,12 @@
 #include "ast_rules.h"
+#include "ast.h"
 #include "ast_nodes.h"
+#include "meta.h"
 #include "scope.h"
+#include "utils.h"
 #include "var.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 bool exec_var_decl(VarNode *node) {
@@ -31,7 +35,7 @@ bool exec_var_decl(VarNode *node) {
 bool exec_var_init(VarNode *node) {
   char *type = node->type;
   char *name = node->name;
-  double value = *node->value;
+  double value = exec_expr_node(node->value->type, node->value->data);
 
   if (strcmp(type, "int") == 0) {
     int i = value;
@@ -58,38 +62,26 @@ bool exec_var_init(VarNode *node) {
 
 bool exec_var_update(VarNode *node) {
   char *name = node->name;
-  double value = *node->value;
+  double value = exec_expr_node(node->value->type, node->value->data);
 
   VarList *l = current_scope->var_list;
-  Var *var = NULL;
-
-  while (l->var != NULL) {
-    if (strcmp(l->var->name, name) == 0) {
-      var = l->var;
-      break;
-    }
-    l = l->next;
-  }
+  Var *var = get_var(name);
 
   if (var == NULL)
     return false;
 
   switch (var->type) {
   case INT:
-    int i = value;
-    return update_var(INT, var, &i);
+    return update_var(INT, var, &value);
     break;
   case FLOAT:
-    float f = value;
-    return update_var(FLOAT, var, &f);
+    return update_var(FLOAT, var, &value);
     break;
   case DOUBLE:
-    double d = value;
-    return update_var(DOUBLE, var, &d);
+    return update_var(DOUBLE, var, &value);
     break;
   case VAR_CHAR:
-    char c = value;
-    return update_var(VAR_CHAR, var, &c);
+    return update_var(VAR_CHAR, var, &value);
     break;
   default:
     return false;
@@ -97,4 +89,102 @@ bool exec_var_update(VarNode *node) {
   }
 
   return false;
+}
+
+double exec_expr_node(NodeType type, ExprNode *node) {
+  double d = 0;
+  double l = 0;
+  double r = 0;
+
+  if (type == EXPR_NUM || type == EXPR_CHAR) {
+    double *n = node->value;
+    d = *n;
+  } else if (type >= EXPR_PLUS && type <= EXPR_NEG) {
+    l = exec_expr_node(node->left_expr->type, node->left_expr->data);
+    if (node->right_expr != NULL)
+      r = exec_expr_node(node->right_expr->type, node->right_expr->data);
+
+    switch (type) {
+    case EXPR_PLUS:
+      d = l + r;
+      break;
+    case EXPR_MINUS:
+      d = l - r;
+      break;
+    case EXPR_TIMES:
+      d = l * r;
+      break;
+    case EXPR_DIV:
+      if (r == 0) {
+        fprintf(stderr, "[ERRO] Divisão por 0 na linha %d\n", line);
+        exit(1);
+      } else {
+        d = l / r;
+      }
+      break;
+    case EXPR_MOD:
+      if (r == 0 || (long)l != l || (long)r != r) {
+        fprintf(stderr, "[ERRO] Operação de módulo com 0 na linha %d\n", line);
+        exit(1);
+      } else {
+        d = (long)l % (long)r;
+      }
+      break;
+    case EXPR_PAR:
+      d = l;
+      break;
+    case EXPR_NEG:
+      d = -l;
+      break;
+    default:
+      break;
+    }
+
+  } else {
+    char *name = node->value;
+    Var *var = get_var(name);
+    double value = get_var_value(name);
+    switch (type) {
+    case EXPR_INC_PREV:
+      d = ++value;
+      update_var(DOUBLE, var, &value);
+      break;
+    case EXPR_INC_POST:
+      d = value++;
+      update_var(DOUBLE, var, &value);
+      break;
+    case EXPR_DEC_PREV:
+      d = --value;
+      update_var(DOUBLE, var, &value);
+      break;
+    case EXPR_DEC_POST:
+      d = value--;
+      update_var(DOUBLE, var, &value);
+      break;
+    default:
+      d = value;
+      break;
+    }
+  }
+
+  return d;
+}
+
+double exec_node_list(ListNode *node) {
+  ListNode *n = node;
+  double r = 0;
+
+  VarNode *vn;
+  ListNode *ln;
+
+  stack_scope();
+
+  while (n != NULL) {
+    exec_node(n->node);
+    n = n->next;
+  }
+
+  pop_scope();
+
+  return r;
 }
