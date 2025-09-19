@@ -7,6 +7,22 @@ typedef enum {
   VAR_DECL,
   VAR_INIT,
   VAR_UPDATE,
+  VAR_PRINT,
+  EXPR_NUM,
+  EXPR_CHAR,
+  EXPR_VAR,
+  EXPR_PLUS,
+  EXPR_MINUS,
+  EXPR_TIMES,
+  EXPR_DIV,
+  EXPR_MOD,
+  EXPR_PAR,
+  EXPR_NEG,
+  EXPR_INC_PREV,
+  EXPR_INC_POST,
+  EXPR_DEC_PREV,
+  EXPR_DEC_POST,
+  NODE_LIST,
 } NodeType;
 
 typedef struct {
@@ -14,12 +30,7 @@ typedef struct {
   void *data;
 } ASTNode;
 
-typedef struct list {
-  ASTNode *node;
-  struct list *next;
-} ASTList;
-
-void exec_node(ASTNode *node);
-void free_node(ASTNode *node);
+extern double exec_node(ASTNode *node);
+extern void free_node(ASTNode *node);
 
 #endif

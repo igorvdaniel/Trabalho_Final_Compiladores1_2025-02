@@ -2,54 +2,80 @@
 #include "ast_nodes.h"
 #include "ast_rules.h"
 #include "meta.h"
+#include "scope.h"
+#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-void exec_node(ASTNode *node) {
-  switch (node->type) {
-  case VAR_DECL:
-    VarNode *nvd = node->data;
-    if (exec_var_decl(nvd)) {
-      printf("[DEBUG] Declaração de variável: %s\n", nvd->name);
-    } else {
-      fprintf(stderr, "[ERRO] Redeclaração da variável %s na linha %d\n",
-              nvd->name, line);
-      exit(1);
+double exec_node(ASTNode *node) {
+  if (node == NULL)
+    return 0;
+
+  NodeType type = node->type;
+
+  // Executa nós do prefixo VAR
+  if (type >= VAR_DECL && type <= VAR_PRINT) {
+    VarNode *data = node->data;
+    switch (type) {
+    case VAR_DECL:
+      if (exec_var_decl(data)) {
+        printf("[DEBUG] Declaração de variável: %s\n", data->name);
+      } else {
+        fprintf(stderr, "[ERRO] Redeclaração da variável %s na linha %d\n",
+                data->name, line);
+        exit(1);
+      }
+      break;
+
+    case VAR_INIT:
+      if (exec_var_init(data)) {
+        printf("[DEBUG] Inicializando a variável: %s\n", data->name);
+      } else {
+        fprintf(stderr, "[ERRO] Redeclaração da variável %s na linha %d\n",
+                data->name, line);
+        exit(1);
+      }
+      break;
+
+    case VAR_UPDATE:
+      if (exec_var_update(data)) {
+        printf("[DEBUG] Atualizando valor da variável: %s\n", data->name);
+      } else {
+        fprintf(stderr, "[ERRO] Uso de variável desconhecida %s na linha %d\n",
+                data->name, line);
+        exit(1);
+      }
+      break;
+
+    case VAR_PRINT:
+      print_var(data->name);
+      break;
+
+    default:
+      break;
     }
-    free_var_node(node);
-    break;
-  case VAR_INIT:
-    VarNode *nvi = node->data;
-    if (exec_var_init(nvi)) {
-      printf("[DEBUG] Inicializando a variável: %s\n", nvi->name);
-    } else {
-      fprintf(stderr, "[ERRO] Redeclaração da variável %s na linha %d\n",
-              nvi->name, line);
-      exit(1);
-    }
-    free_var_node(node);
-    break;
-  case VAR_UPDATE:
-    VarNode *nvu = node->data;
-    if (exec_var_update(nvu)) {
-      printf("[DEBUG] Atualizando valor da variável: %s\n", nvu->name);
-    } else {
-      fprintf(stderr, "[ERRO] Uso de variável desconhecida %s na linha %d\n",
-              nvu->name, line);
-      exit(1);
-    }
-    free_var_node(node);
-    break;
   }
+
+  if (type >= EXPR_NUM && type <= EXPR_DEC_POST)
+    return exec_expr_node(node->type, node->data);
+
+  if (type == NODE_LIST)
+    return exec_node_list(node->data);
+
+  return 0;
 }
 
 void free_node(ASTNode *node) {
-  switch (node->type) {
-  case VAR_DECL:
-    break;
-  case VAR_INIT:
-    break;
-  case VAR_UPDATE:
-    break;
-  }
+  NodeType type = node->type;
+
+  // Limpa nós do prefixo VAR
+  if (type >= VAR_DECL && type <= VAR_PRINT)
+    free_var_node(node);
+
+  // Limpa nós do prefixo OP
+  if (type >= EXPR_NUM && type <= EXPR_DEC_POST)
+    free_expr_node(node);
+
+  if (type == NODE_LIST)
+    free_list_node(node);
 }

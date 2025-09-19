@@ -19,7 +19,7 @@ VarList *create_var_list() {
   return vl;
 }
 
-void purge_var_list(VarList *v) {
+void free_var_list(VarList *v) {
   while (v != NULL) {
     VarList *current = v;
     v = v->next;
@@ -41,8 +41,9 @@ Var *get_var(char *name) {
     VarList *l = scope->var_list;
 
     while (l->var != NULL) {
-      if (strcmp(l->var->name, name) == 0)
+      if (strcmp(l->var->name, name) == 0) {
         return l->var;
+      }
       l = l->next;
     }
 
@@ -103,18 +104,22 @@ bool add_var(VarType type, char *name, void *value) {
 
 bool update_var(VarType type, Var *var, void *value) {
   if (type <= VAR_CHAR) {
+    double *num = value;
     switch (var->type) {
     case INT:
-      memcpy(var->value, value, sizeof(int));
+      int i = *num;
+      memcpy(var->value, &i, sizeof(int));
       break;
     case FLOAT:
-      memcpy(var->value, value, sizeof(float));
+      float f = *num;
+      memcpy(var->value, &f, sizeof(float));
       break;
     case DOUBLE:
-      memcpy(var->value, value, sizeof(double));
+      memcpy(var->value, num, sizeof(double));
       break;
     case VAR_CHAR:
-      memcpy(var->value, value, sizeof(char));
+      char c = *num;
+      memcpy(var->value, &c, sizeof(char));
       break;
     default:
       return false;
