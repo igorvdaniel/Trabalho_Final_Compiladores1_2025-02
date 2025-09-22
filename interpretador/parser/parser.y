@@ -1,14 +1,11 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 #include "ast.h"
 #include "ast_nodes.h"
-#include "var.h"
 #include "scope.h"
-#include "utils.h"
 #include "meta.h"
+#include "error.h"
 int yylex(void);
 void yyerror(const char *s);
 %}
@@ -33,7 +30,7 @@ void yyerror(const char *s);
 %token PLUS "+" MINUS "-" TIMES "*" DIVIDE "/" MOD "%"
 
 /* Operadores unarios*/
-%token INCR DECR 
+%token INCR "++" DECR "--"
 
 %token LPAREN "(" RPAREN ")"
 %token LBRACK "{" RBRACK "}"
@@ -56,10 +53,8 @@ program:
 
 scope: "{"         { $<node>list = current_list; 
                      current_list = create_node_list(); }[list]
-       /* { stack_scope(); } */
        inner_scope
        "}"         { $$ = current_list; current_list = $<node>list; }
-       /* { pop_scope();   } */
      ;
 
 
@@ -75,9 +70,7 @@ inner_scope:
                            current_list = $<node>list;
                            add_list_node(l); }
 
-stmt: VAR_NAME[name] ";" {
-        $$ = create_var_node(VAR_PRINT, NULL, $name, NULL);
-      }
+stmt: VAR_NAME[name] ";" { $$ = create_var_node(VAR_PRINT, NULL, $name, NULL); }
     ;
 
 decl: var_decl   { $$ = $1; }
@@ -87,9 +80,11 @@ decl: var_decl   { $$ = $1; }
 var_decl: VAR_TYPE[type] VAR_NAME[name] ";" {
             $$ = create_var_node(VAR_DECL, $type, $name, NULL);
 		      }
+        | error VAR_NAME[name] ";" { exit_with_error(DECL_INVALID_TYPE); }
         | VAR_TYPE[type] VAR_NAME[name] "=" expr ";" {
             $$ = create_var_node(VAR_INIT, $type, $name, $expr);
           }
+        | error VAR_NAME[name] "=" expr ";" { exit_with_error(INIT_INVALID_TYPE); }
         ;
 
 var_update: VAR_NAME[name] "=" expr ";" {
@@ -100,18 +95,20 @@ var_update: VAR_NAME[name] "=" expr ";" {
 expr:
       NUM            { $$ = create_expr_node(EXPR_NUM, &$1, NULL, NULL); }
     | CHAR           { $$ = create_expr_node(EXPR_CHAR, &$1, NULL, NULL); }
-    | VAR_NAME[name] { $$ = create_expr_node(EXPR_VAR, $1, NULL, NULL); }
+    | VAR_NAME       { $$ = create_expr_node(EXPR_VAR, $1, NULL, NULL); }
     | expr "+" expr  { $$ = create_expr_node(EXPR_PLUS, NULL, $1, $3); }
     | expr "-" expr  { $$ = create_expr_node(EXPR_MINUS, NULL, $1, $3); }
     | expr "*" expr  { $$ = create_expr_node(EXPR_TIMES, NULL, $1, $3); }
     | expr "/" expr  { $$ = create_expr_node(EXPR_DIV, NULL, $1, $3); }
     | expr "%" expr  { $$ = create_expr_node(EXPR_MOD, NULL, $1, $3); }
+    | expr error expr{ exit_with_error(UNKNOWN_OPERATION); }
     | "(" expr ")"   { $$ = create_expr_node(EXPR_PAR, NULL, $2, NULL); }
     | MINUS expr     { $$ = create_expr_node(EXPR_NEG, NULL, $2, NULL); }
-    | INCR VAR_NAME  { $$ = create_expr_node(EXPR_INC_PREV, $2, NULL, NULL); }   /* ++x */
-    | DECR VAR_NAME  { $$ = create_expr_node(EXPR_DEC_PREV, $2, NULL, NULL); }   /* --x */
-    | VAR_NAME INCR  { $$ = create_expr_node(EXPR_INC_POST, $1, NULL, NULL); }   /* x++ */
-    | VAR_NAME DECR  { $$ = create_expr_node(EXPR_DEC_POST, $1, NULL, NULL); }   /* x-- */
+    | "++" VAR_NAME  { $$ = create_expr_node(EXPR_INC_PREV, $2, NULL, NULL); }   /* ++x */
+    | "--" VAR_NAME  { $$ = create_expr_node(EXPR_DEC_PREV, $2, NULL, NULL); }   /* --x */
+    | VAR_NAME "++"  { $$ = create_expr_node(EXPR_INC_POST, $1, NULL, NULL); }   /* x++ */
+    | VAR_NAME "--"  { $$ = create_expr_node(EXPR_DEC_POST, $1, NULL, NULL); }   /* x-- */
+    | error          { exit_with_error(UNKNOWN_SYMBOL); }
     ;
 
 %%

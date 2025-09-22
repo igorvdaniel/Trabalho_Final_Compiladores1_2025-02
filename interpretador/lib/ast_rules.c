@@ -142,24 +142,19 @@ double exec_expr_node(NodeType type, ExprNode *node) {
 
   } else {
     char *name = node->value;
-    Var *var = get_var(name);
     double value = get_var_value(name);
     switch (type) {
     case EXPR_INC_PREV:
       d = ++value;
-      update_var(DOUBLE, var, &value);
       break;
     case EXPR_INC_POST:
       d = value++;
-      update_var(DOUBLE, var, &value);
       break;
     case EXPR_DEC_PREV:
       d = --value;
-      update_var(DOUBLE, var, &value);
       break;
     case EXPR_DEC_POST:
       d = value--;
-      update_var(DOUBLE, var, &value);
       break;
     default:
       d = value;

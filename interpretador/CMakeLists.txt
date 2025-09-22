@@ -18,10 +18,11 @@ set(LIBRARY
   ast.c
   ast_nodes.c
   ast_rules.c
-  var.c
-  utils.c
+  error.c
   meta.c
   scope.c
+  utils.c
+  var.c
 )
 
 list(TRANSFORM LIBRARY PREPEND lib/)

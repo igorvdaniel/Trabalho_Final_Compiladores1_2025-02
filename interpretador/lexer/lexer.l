@@ -54,11 +54,11 @@ AL  [_a-zA-Z]
 
 [ \t]+    { /* não faz nada */ }
 
-"//".* { /* Comentário */}
+"//".*    { /* Comentário */}
 
 \n        { line++; }
 
-.         { printf("Caractere não reconhecido: %s\n", yytext); }
+.         { /* printf("Caractere não reconhecido: %s\n", yytext); */ }
 
 %%
 
