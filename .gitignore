@@ -1,0 +1,17 @@
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+#Vscode
+.vscode
+
+build
+.cache
+.clangd
+__pycache__

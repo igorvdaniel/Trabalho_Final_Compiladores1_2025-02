@@ -1,17 +1,67 @@
 %{
+#include <stdio.h>
+#include <stdlib.h>
+#include "ast.h"
+#include "utils.h"
+#include "meta.h"
 #include "parser.tab.h"
 %}
 
+%option always-interactive
+
+N   [0-9]
+NSZ [1-9]
+AN  [a-zA-Z0-9_]
+AL  [_a-zA-Z]
+
 %%
 
-[0-9]+          { yylval = atoi(yytext); return NUM; }
+";" { return SEMI; }
+
+"=" { return EQUAL; }
+
 "+"             { return PLUS; }
 "-"             { return MINUS; }
 "*"             { return TIMES; }
 "/"             { return DIVIDE; }
 "("             { return LPAREN; }
 ")"             { return RPAREN; }
-[ \t\n]+        { /* Ignorar espaços em branco */ }
-.               { printf("Caractere inválido: %s\n", yytext); }
+"{"             { return LBRACK; }
+"}"             { return RBRACK; }
+"++"            { return INCR; }
+"--"            { return DECR; }
+"%"             { return MOD; }
+
+("int"|"float"|"double"|"char") {
+    yylval.strValue = strdup(yytext);
+    return VAR_TYPE;
+}
+
+{AL}{AN}* {
+    yylval.strValue = strdup(yytext);
+    return VAR_NAME;
+}
+
+[+-]?{N}+(\.{N}+)?  {
+    yylval.doubleValue = atof(yytext);
+    return NUM;
+}
+
+'(\\)?.' {
+    yylval.doubleValue = convert_char(yytext);
+    return CHAR;
+}
+
+[ \t]+    { /* não faz nada */ }
+
+"//".*    { /* Comentário */}
+
+\n        { line++; }
+
+.         { /* printf("Caractere não reconhecido: %s\n", yytext); */ }
 
 %%
+
+int yywrap(void) {
+    return 1;
+}
