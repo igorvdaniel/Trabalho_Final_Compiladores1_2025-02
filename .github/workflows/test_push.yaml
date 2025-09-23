@@ -1,0 +1,28 @@
+name: Executa testes com o pytest
+  
+on: [push] 
+
+jobs:  
+  test:  
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup cmake/ninja
+        uses: lukka/get-cmake@v4.1.1
+      - name: Setup just
+        uses: extractions/setup-just@v3
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bison flex
+      - name: Install pytest
+        run: |
+          pip install pytest
+      - name: Build and test project
+        run: |
+          just test
+      

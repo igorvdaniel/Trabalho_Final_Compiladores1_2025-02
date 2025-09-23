@@ -1,0 +1,43 @@
+name: Executa testes com o pytest e gera um comentário no pull request
+on:
+  pull_request:
+    branches:
+      - '*'
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+
+jobs:  
+  test:  
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup cmake/ninja
+        uses: lukka/get-cmake@v4.1.1
+      - name: Setup just
+        uses: extractions/setup-just@v3
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+      - name: Install bison/flex
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bison flex
+      - name: Install pytest
+        run: |
+          pip install pytest pytest-cov
+      - name: Build project
+        run: |
+          just build
+      - name: Generate test report
+        run: |
+          pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src interpretador/test/ | tee pytest-coverage.txt
+      - name: Pytest coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
+      
