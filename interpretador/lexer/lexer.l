@@ -18,7 +18,7 @@ AL  [_a-zA-Z]
 
 ";" { return SEMI; }
 
-"=" { return EQUAL; }
+"=" { return ATTR; }
 
 "+"             { return PLUS; }
 "-"             { return MINUS; }
@@ -31,6 +31,8 @@ AL  [_a-zA-Z]
 "++"            { return INCR; }
 "--"            { return DECR; }
 "%"             { return MOD; }
+"=="            { return EQUAL; }
+"!="            { return NEQUAL; }
 
 "if"            { return IF; }
 "else"          { return ELSE; }

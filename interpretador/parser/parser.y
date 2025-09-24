@@ -19,7 +19,7 @@ void yyerror(const char *s);
 
 %token <doubleValue> NUM CHAR
 %token <strValue> VAR_NAME VAR_TYPE
-%token SEMI ";" EQUAL "="
+%token SEMI ";" ATTR "="
 
 %type <node> decl stmt
 %type <node> var_decl var_update
@@ -32,6 +32,7 @@ void yyerror(const char *s);
 
 /* Operações */
 %token PLUS "+" MINUS "-" TIMES "*" DIVIDE "/" MOD "%"
+%token EQUAL "==" NEQUAL "!="
 
 /* Operadores unarios*/
 %token INCR "++" DECR "--"
@@ -105,6 +106,8 @@ expr:
     | expr "*" expr  { $$ = create_expr_node(EXPR_TIMES, NULL, $1, $3); }
     | expr "/" expr  { $$ = create_expr_node(EXPR_DIV, NULL, $1, $3); }
     | expr "%" expr  { $$ = create_expr_node(EXPR_MOD, NULL, $1, $3); }
+    | expr "==" expr { $$ = create_expr_node(EXPR_EQUAL, NULL, $1, $3); }
+    | expr "!=" expr { $$ = create_expr_node(EXPR_NEQUAL, NULL, $1, $3); }
     | expr error expr{ exit_with_error(UNKNOWN_OPERATION); }
     | "(" expr ")"   { $$ = create_expr_node(EXPR_PAR, NULL, $2, NULL); }
     | MINUS expr     { $$ = create_expr_node(EXPR_NEG, NULL, $2, NULL); }

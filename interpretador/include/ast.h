@@ -15,6 +15,8 @@ typedef enum {
   EXPR_MINUS,
   EXPR_TIMES,
   EXPR_DIV,
+  EXPR_EQUAL,
+  EXPR_NEQUAL,
   EXPR_MOD,
   EXPR_PAR,
   EXPR_NEG,
