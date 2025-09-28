@@ -62,6 +62,15 @@ double exec_node(ASTNode *node) {
   if (type == NODE_LIST)
     return exec_node_list(node->data);
 
+  case NODE_WHILE:
+    exec_while_node(node);
+    break;
+
+  case NODE_DO_WHILE:
+    exec_do_while_node(node);
+    break;
+
+
   return 0;
 }
 
@@ -78,4 +87,13 @@ void free_node(ASTNode *node) {
 
   if (type == NODE_LIST)
     free_list_node(node);
+
+  case NODE_WHILE:
+    free_while_node(node);
+    break;
+
+  case NODE_DO_WHILE:
+    free_do_while_node(node);
+    break;
+
 }

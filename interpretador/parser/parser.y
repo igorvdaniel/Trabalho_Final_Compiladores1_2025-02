@@ -34,6 +34,7 @@ void yyerror(const char *s);
 
 %token LPAREN "(" RPAREN ")"
 %token LBRACK "{" RBRACK "}"
+%type <node> body
 
 /* Precedência e associatividade */
 %left PLUS MINUS
@@ -57,8 +58,6 @@ scope: "{"         { $<node>list = current_list;
        "}"         { $$ = current_list; current_list = $<node>list; }
      ;
 
-
-
 inner_scope:
            | inner_scope stmt { add_list_node($2); }
            | inner_scope decl { add_list_node($2); }
@@ -69,8 +68,24 @@ inner_scope:
              "}"         { ASTNode *l = current_list;
                            current_list = $<node>list;
                            add_list_node(l); }
+         ;
 
-stmt: VAR_NAME[name] ";" { $$ = create_var_node(VAR_PRINT, NULL, $name, NULL); }
+/* body: sempre retorna um ASTNode* cujo type = NODE_LIST */
+body
+  : stmt    { ASTNode *l = create_node_list(); add_list_node($1); $$ = l; }
+  | scope   { $$ = $1; }
+  ;
+
+stmt:
+      VAR_NAME[name] ";" { $$ = create_var_node(VAR_PRINT, NULL, $name, NULL); }
+
+    /* while (expr) body */
+    | WHILE "(" expr ")" body
+      { $$ = create_while_node($3, $5); }
+
+    /* do body while (expr); */
+    | DO body WHILE "(" expr ")" ";"
+      { $$ = create_do_while_node($2, $5); }
     ;
 
 decl: var_decl   { $$ = $1; }

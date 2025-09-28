@@ -23,6 +23,8 @@ typedef enum {
   EXPR_DEC_PREV,
   EXPR_DEC_POST,
   NODE_LIST,
+  NODE_WHILE,
+  NODE_DO_WHILE,
 } NodeType;
 
 typedef struct {
