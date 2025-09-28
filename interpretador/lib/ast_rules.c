@@ -183,3 +183,20 @@ double exec_node_list(ListNode *node) {
 
   return r;
 }
+
+double exec_if_node(ASTNode *node) {
+    if (!node || node->type != IF_STMT) return 0;
+
+    ASTNodeIf *ifn = (ASTNodeIf *)node->data;
+    if (!ifn || !ifn->condition) return 0;
+
+    double condition_result = exec_node(ifn->condition);
+
+    if (condition_result != 0) {
+        return exec_node(ifn->if_body);
+    } else if (ifn->else_body != NULL) {
+        return exec_node(ifn->else_body);
+    }
+
+    return 0;
+}

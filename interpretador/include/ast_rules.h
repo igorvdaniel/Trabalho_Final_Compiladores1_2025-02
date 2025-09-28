@@ -13,4 +13,6 @@ extern double exec_expr_node(NodeType type, ExprNode *node);
 
 extern double exec_node_list(ListNode *node);
 
+extern double exec_if_node(ASTNode *node);
+
 #endif

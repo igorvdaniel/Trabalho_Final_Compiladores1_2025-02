@@ -34,5 +34,18 @@ extern void free_expr_node(ASTNode *node);
 extern ASTNode *create_node_list();
 extern void add_list_node(ASTNode *node);
 extern void free_list_node(ASTNode *node);
+extern ASTNode *create_if_node(NodeType node_type, ASTNode *condition, ASTNode *if_body, ASTNode *else_body);
+extern void free_if_node(ASTNode *node);
+
+typedef struct {
+  ASTNode *condition;
+  ASTNode *if_body;
+  ASTNode *else_body;
+} ASTNodeIf;
+
+typedef struct {
+  ASTNode *left;
+  ASTNode *right;
+} ASTNodeCondition;
 
 #endif
