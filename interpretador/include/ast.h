@@ -39,7 +39,7 @@ typedef struct {
 
 extern double exec_node(ASTNode *node);
 extern void free_node(ASTNode *node);
-extern ASTNode *create_if_node(NodeType node_type, ASTNode *condition, ASTNode *if_body, ASTNode *else_body);
+extern ASTNode *create_if_node(ASTNode *condition, ASTNode *if_body, ASTNode *else_body);
 extern void free_if_node(ASTNode *node);
 
 #endif
