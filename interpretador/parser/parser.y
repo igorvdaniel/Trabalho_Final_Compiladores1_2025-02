@@ -43,6 +43,7 @@ void yyerror(const char *s);
 /* Precedência e associatividade */
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
+%left EQUAL NEQUAL
 %right UMINUS   /* ex: -5 */
 %right INCR DECR   /* ++ e -- associativos a direita */
 
@@ -98,23 +99,22 @@ var_update: VAR_NAME[name] "=" expr ";" {
           ;
 
 expr:
-      NUM            { $$ = create_expr_node(EXPR_NUM, &$1, NULL, NULL); }
-    | CHAR           { $$ = create_expr_node(EXPR_CHAR, &$1, NULL, NULL); }
-    | VAR_NAME       { $$ = create_expr_node(EXPR_VAR, $1, NULL, NULL); }
-    | expr "+" expr  { $$ = create_expr_node(EXPR_PLUS, NULL, $1, $3); }
-    | expr "-" expr  { $$ = create_expr_node(EXPR_MINUS, NULL, $1, $3); }
+      "(" expr ")"   { $$ = create_expr_node(EXPR_PAR, NULL, $2, NULL); }
+    | "++" VAR_NAME  { $$ = create_expr_node(EXPR_INC_PREV, $2, NULL, NULL); }   /* ++x */
+    | "--" VAR_NAME  { $$ = create_expr_node(EXPR_DEC_PREV, $2, NULL, NULL); }   /* --x */
+    | VAR_NAME "++"  { $$ = create_expr_node(EXPR_INC_POST, $1, NULL, NULL); }   /* x++ */
+    | VAR_NAME "--"  { $$ = create_expr_node(EXPR_DEC_POST, $1, NULL, NULL); }   /* x-- */
     | expr "*" expr  { $$ = create_expr_node(EXPR_TIMES, NULL, $1, $3); }
     | expr "/" expr  { $$ = create_expr_node(EXPR_DIV, NULL, $1, $3); }
     | expr "%" expr  { $$ = create_expr_node(EXPR_MOD, NULL, $1, $3); }
     | expr "==" expr { $$ = create_expr_node(EXPR_EQUAL, NULL, $1, $3); }
     | expr "!=" expr { $$ = create_expr_node(EXPR_NEQUAL, NULL, $1, $3); }
-    | expr error expr{ exit_with_error(UNKNOWN_OPERATION); }
-    | "(" expr ")"   { $$ = create_expr_node(EXPR_PAR, NULL, $2, NULL); }
+    | expr "+" expr  { $$ = create_expr_node(EXPR_PLUS, NULL, $1, $3); }
+    | expr "-" expr  { $$ = create_expr_node(EXPR_MINUS, NULL, $1, $3); }
     | MINUS expr     { $$ = create_expr_node(EXPR_NEG, NULL, $2, NULL); }
-    | "++" VAR_NAME  { $$ = create_expr_node(EXPR_INC_PREV, $2, NULL, NULL); }   /* ++x */
-    | "--" VAR_NAME  { $$ = create_expr_node(EXPR_DEC_PREV, $2, NULL, NULL); }   /* --x */
-    | VAR_NAME "++"  { $$ = create_expr_node(EXPR_INC_POST, $1, NULL, NULL); }   /* x++ */
-    | VAR_NAME "--"  { $$ = create_expr_node(EXPR_DEC_POST, $1, NULL, NULL); }   /* x-- */
+    | NUM            { $$ = create_expr_node(EXPR_NUM, &$1, NULL, NULL); }
+    | CHAR           { $$ = create_expr_node(EXPR_CHAR, &$1, NULL, NULL); }
+    | VAR_NAME       { $$ = create_expr_node(EXPR_VAR, $1, NULL, NULL); }
     | error          { exit_with_error(UNKNOWN_SYMBOL); }
     ;
 
