@@ -26,6 +26,10 @@ void yyerror(const char *s);
 %type <node> scope
 %type <node> expr
 
+/* Operadores Condicionais*/
+%token IF ELSE
+%token EQ "==" NE "!=" LT "<" GT ">" LE "<=" GE ">="
+
 /* Operações */
 %token PLUS "+" MINUS "-" TIMES "*" DIVIDE "/" MOD "%"
 

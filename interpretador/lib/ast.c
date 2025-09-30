@@ -78,4 +78,7 @@ void free_node(ASTNode *node) {
 
   if (type == NODE_LIST)
     free_list_node(node);
+
+   if (type == IF_STMT)
+    free_if_node(node);
 }

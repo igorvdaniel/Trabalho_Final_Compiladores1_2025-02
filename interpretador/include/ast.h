@@ -23,6 +23,13 @@ typedef enum {
   EXPR_DEC_PREV,
   EXPR_DEC_POST,
   NODE_LIST,
+  IF_STMT,
+  CONDITION_EQ,
+  CONDITION_NE,
+  CONDITION_LT,
+  CONDITION_GT,
+  CONDITION_LE,
+  CONDITION_GE
 } NodeType;
 
 typedef struct {
@@ -32,5 +39,7 @@ typedef struct {
 
 extern double exec_node(ASTNode *node);
 extern void free_node(ASTNode *node);
+extern ASTNode *create_if_node(ASTNode *condition, ASTNode *if_body, ASTNode *else_body);
+extern void free_if_node(ASTNode *node);
 
 #endif

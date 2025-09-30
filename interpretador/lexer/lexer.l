@@ -32,6 +32,16 @@ AL  [_a-zA-Z]
 "--"            { return DECR; }
 "%"             { return MOD; }
 
+"if"            { return IF; }
+"else"          { return ELSE; }
+
+"=="            { return EQ; }
+"!="            { return NE; }
+"<"             { return LT; }
+">"             { return GT; }
+"<="            { return LE; }
+">="            { return GE; }
+
 ("int"|"float"|"double"|"char") {
     yylval.strValue = strdup(yytext);
     return VAR_TYPE;

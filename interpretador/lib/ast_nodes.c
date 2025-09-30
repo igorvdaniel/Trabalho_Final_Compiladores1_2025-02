@@ -143,3 +143,40 @@ void free_list_node(ASTNode *node) {
 
   free(node);
 }
+
+ASTNode *create_if_node(ASTNode *condition, ASTNode *if_body, ASTNode *else_body) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    if (!node) return NULL;
+
+    ASTNodeIf *ifn = malloc(sizeof(ASTNodeIf));
+    if (!ifn) {
+        free(node);
+        return NULL;
+    }
+
+    node->type = IF_STMT;
+    node->data = ifn;
+
+    ifn->condition = condition;
+    ifn->if_body = if_body;
+    ifn->else_body = else_body;
+
+    return node;
+}
+
+void free_if_node(ASTNode *node) {
+    if (!node) return;
+
+    ASTNodeIf *ifn = (ASTNodeIf *)node->data;
+    if (!ifn) {
+        free(node);
+        return;
+    }
+
+    free_node(ifn->condition);
+    free_node(ifn->if_body);
+    free_node(ifn->else_body);
+
+    free(ifn);
+    free(node);
+  }
