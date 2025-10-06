@@ -28,11 +28,12 @@ void yyerror(const char *s);
 
 /* Operadores Condicionais*/
 %token IF ELSE
-%token EQ "==" NE "!=" LT "<" GT ">" LE "<=" GE ">="
+%token LT "<" GT ">" LE "<=" GE ">="
 
 /* Operações */
-%token PLUS "+" MINUS "-" TIMES "*" DIVIDE "/" MOD "%"
-%token EQUAL "==" NEQUAL "!="
+%token PLUS "+" MINUS "-" 
+%token TIMES "*" DIVIDE "/" MOD "%"
+%token EQ "==" NE "!="
 
 /* Operadores unarios*/
 %token INCR "++" DECR "--"
@@ -43,9 +44,8 @@ void yyerror(const char *s);
 /* Precedência e associatividade */
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
-%left EQUAL NEQUAL
-%right UMINUS   /* ex: -5 */
-%right INCR DECR   /* ++ e -- associativos a direita */
+%left EQ NE
+%right INCR DECR
 
 %start program
 
@@ -55,6 +55,7 @@ program:
        | program stmt     { exec_node($2); free_node($2); }
        | program decl     { exec_node($2); free_node($2); }
        | program scope    { exec_node($2); free_node($2); }
+       | program expr     { exec_node($2); free_node($2); }
        ;
 
 scope: "{"         { $<node>list = current_list; 
@@ -100,10 +101,11 @@ var_update: VAR_NAME[name] "=" expr ";" {
 
 expr:
       "(" expr ")"   { $$ = create_expr_node(EXPR_PAR, NULL, $2, NULL); }
-    | "++" VAR_NAME  { $$ = create_expr_node(EXPR_INC_PREV, $2, NULL, NULL); }   /* ++x */
-    | "--" VAR_NAME  { $$ = create_expr_node(EXPR_DEC_PREV, $2, NULL, NULL); }   /* --x */
     | VAR_NAME "++"  { $$ = create_expr_node(EXPR_INC_POST, $1, NULL, NULL); }   /* x++ */
     | VAR_NAME "--"  { $$ = create_expr_node(EXPR_DEC_POST, $1, NULL, NULL); }   /* x-- */
+    | "++" VAR_NAME  { $$ = create_expr_node(EXPR_INC_PREV, $2, NULL, NULL); }   /* ++x */
+    | "--" VAR_NAME  { $$ = create_expr_node(EXPR_DEC_PREV, $2, NULL, NULL); }   /* --x */
+    | MINUS expr     { $$ = create_expr_node(EXPR_NEG, NULL, $2, NULL); }
     | expr "*" expr  { $$ = create_expr_node(EXPR_TIMES, NULL, $1, $3); }
     | expr "/" expr  { $$ = create_expr_node(EXPR_DIV, NULL, $1, $3); }
     | expr "%" expr  { $$ = create_expr_node(EXPR_MOD, NULL, $1, $3); }
@@ -111,7 +113,6 @@ expr:
     | expr "!=" expr { $$ = create_expr_node(EXPR_NEQUAL, NULL, $1, $3); }
     | expr "+" expr  { $$ = create_expr_node(EXPR_PLUS, NULL, $1, $3); }
     | expr "-" expr  { $$ = create_expr_node(EXPR_MINUS, NULL, $1, $3); }
-    | MINUS expr     { $$ = create_expr_node(EXPR_NEG, NULL, $2, NULL); }
     | NUM            { $$ = create_expr_node(EXPR_NUM, &$1, NULL, NULL); }
     | CHAR           { $$ = create_expr_node(EXPR_CHAR, &$1, NULL, NULL); }
     | VAR_NAME       { $$ = create_expr_node(EXPR_VAR, $1, NULL, NULL); }

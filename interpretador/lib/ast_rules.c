@@ -99,7 +99,7 @@ double exec_expr_node(NodeType type, ExprNode *node) {
   if (type == EXPR_NUM || type == EXPR_CHAR) {
     double *n = node->value;
     d = *n;
-  } else if (type >= EXPR_PLUS && type <= EXPR_NEG) {
+  } else if (type >= EXPR_PLUS && type <= EXPR_PAR) {
     l = exec_expr_node(node->left_expr->type, node->left_expr->data);
     if (node->right_expr != NULL)
       r = exec_expr_node(node->right_expr->type, node->right_expr->data);
@@ -122,6 +122,12 @@ double exec_expr_node(NodeType type, ExprNode *node) {
         d = l / r;
       }
       break;
+    case EXPR_EQUAL:
+      d = l == r;
+      break;
+    case EXPR_NEQUAL:
+      d = l != r;
+      break;
     case EXPR_MOD:
       if (r == 0 || (long)l != l || (long)r != r) {
         fprintf(stderr, "[ERRO] Operação de módulo com 0 na linha %d\n", line);
@@ -130,17 +136,11 @@ double exec_expr_node(NodeType type, ExprNode *node) {
         d = (long)l % (long)r;
       }
       break;
-    case EXPR_PAR:
-      d = l;
-      break;
     case EXPR_NEG:
       d = -l;
       break;
-    case EXPR_EQUAL:
-      d = l == r;
-      break;
-    case EXPR_NEQUAL:
-      d = l != r;
+    case EXPR_PAR:
+      d = l;
       break;
     default:
       break;
@@ -149,18 +149,24 @@ double exec_expr_node(NodeType type, ExprNode *node) {
   } else {
     char *name = node->value;
     double value = get_var_value(name);
+    Var *var = get_var(name);
+
     switch (type) {
     case EXPR_INC_PREV:
       d = ++value;
+      update_var(DOUBLE, var, &value);
       break;
     case EXPR_INC_POST:
       d = value++;
+      update_var(DOUBLE, var, &value);
       break;
     case EXPR_DEC_PREV:
       d = --value;
+      update_var(DOUBLE, var, &value);
       break;
     case EXPR_DEC_POST:
       d = value--;
+      update_var(DOUBLE, var, &value);
       break;
     default:
       d = value;
@@ -191,18 +197,20 @@ double exec_node_list(ListNode *node) {
 }
 
 double exec_if_node(ASTNode *node) {
-    if (!node || node->type != IF_STMT) return 0;
-
-    ASTNodeIf *ifn = (ASTNodeIf *)node->data;
-    if (!ifn || !ifn->condition) return 0;
-
-    double condition_result = exec_node(ifn->condition);
-
-    if (condition_result != 0) {
-        return exec_node(ifn->if_body);
-    } else if (ifn->else_body != NULL) {
-        return exec_node(ifn->else_body);
-    }
-
+  if (!node || node->type != IF_STMT)
     return 0;
+
+  ASTNodeIf *ifn = (ASTNodeIf *)node->data;
+  if (!ifn || !ifn->condition)
+    return 0;
+
+  double condition_result = exec_node(ifn->condition);
+
+  if (condition_result != 0) {
+    return exec_node(ifn->if_body);
+  } else if (ifn->else_body != NULL) {
+    return exec_node(ifn->else_body);
+  }
+
+  return 0;
 }
