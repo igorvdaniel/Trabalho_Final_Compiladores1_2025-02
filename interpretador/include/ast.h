@@ -24,6 +24,15 @@ typedef enum {
   EXPR_NEQUAL,
   EXPR_MOD,
   EXPR_NEG,
+  EXPR_EQ,
+  EXPR_NE,
+  EXPR_LT,
+  EXPR_GT,
+  EXPR_LE,
+  EXPR_GE,
+  EXPR_AND,
+  EXPR_OR,
+  EXPR_NOT,
 
   // Expressão com parenteses
   EXPR_PAR,
@@ -39,10 +48,6 @@ typedef enum {
 
   // Nó if
   IF_STMT,
-  CONDITION_LT,
-  CONDITION_GT,
-  CONDITION_LE,
-  CONDITION_GE
 } NodeType;
 
 typedef struct {

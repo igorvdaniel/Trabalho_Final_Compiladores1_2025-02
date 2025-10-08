@@ -139,6 +139,33 @@ double exec_expr_node(NodeType type, ExprNode *node) {
     case EXPR_NEG:
       d = -l;
       break;
+    case EXPR_EQ:
+      d = l == r;
+      break;
+    case EXPR_NE:
+      d = l != r;
+      break;
+    case EXPR_LT:
+      d = l < r;
+      break;
+    case EXPR_GT:
+      d = l > r;
+      break;
+    case EXPR_LE:
+      d = l <= r;
+      break;
+    case EXPR_GE:
+      d = l >= r;
+      break;
+    case EXPR_AND:
+      d = l && r;
+      break;
+    case EXPR_OR:
+      d = l || r;
+      break;
+    case EXPR_NOT:
+      d = !l;
+      break;
     case EXPR_PAR:
       d = l;
       break;
